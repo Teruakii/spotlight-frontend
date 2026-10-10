@@ -1,24 +1,41 @@
-# Spotlight Frontend
+# Spotlight Backend
 
-A travel & dining guide web app built with **Next.js** and **Tailwind CSS**.
-This is the frontend for [spotlight-backend](https://github.com/Teruakii/spotlight-backend).
+RESTful API backend built with **Node.js**, **Express**, and **Prisma**.
+The architecture follows **Clean Architecture** and **Hexagonal (Ports & Adapters)**
+principles for high testability, scalability, and maintainability.
+
+Used by [spotlight-frontend](https://github.com/Teruakii/spotlight-frontend).
 
 ## Tech Stack
 
-- [Next.js](https://nextjs.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
+- [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/)
+- [Prisma ORM](https://www.prisma.io/)
+- [Jest](https://jestjs.io/) for testing
 
 ## Project Structure
 
 ```
 .
-├── src/                  # Application source code
-├── .env.local.example    # Example environment variables
-├── jsconfig.json         # JS path aliases
-├── next.config.mjs       # Next.js configuration
-├── postcss.config.mjs    # PostCSS configuration
-└── tailwind.config.js    # Tailwind CSS configuration
+├── prisma/            # Prisma schema and migrations
+├── src/               # Application source code
+├── tests/
+│   └── domain/        # Domain layer unit tests
+├── .env.example       # Example environment variables
+├── jest.config.js     # Jest configuration
+├── prisma.config.js   # Prisma configuration
+└── server.js          # Application entry point
 ```
+
+## Architecture
+
+The project separates concerns into layers, with dependencies pointing inward:
+
+- **Domain** – entities and core business rules, independent of any framework
+- **Application** – use cases that orchestrate the domain
+- **Adapters** – HTTP (Express) and persistence (Prisma) implementations
+
+Ports define what the core needs, and adapters implement them. This makes it easy
+to swap infrastructure and to test business logic in isolation.
 
 ## Getting Started
 
@@ -26,46 +43,46 @@ This is the frontend for [spotlight-backend](https://github.com/Teruakii/spotlig
 
 - Node.js 18 or later
 - npm
-- A running instance of [spotlight-backend](https://github.com/Teruakii/spotlight-backend)
+- A database supported by Prisma
 
 ### Installation
 
 ```bash
-git clone https://github.com/Teruakii/spotlight-frontend.git
-cd spotlight-frontend
+git clone https://github.com/Teruakii/spotlight-backend.git
+cd spotlight-backend
 npm install
 ```
 
 ### Environment Variables
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env
 ```
 
-Then edit `.env.local` with your own values.
+Then edit `.env` with your own values (for example `DATABASE_URL`).
 
-| Variable | Description |
-| -------- | ----------- |
-| `NEXT_PUBLIC_API_URL` | Base URL of the backend API |
-
-### Run the Development Server
+### Database Setup
 
 ```bash
-npm run dev
+npx prisma generate
+npx prisma migrate dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Build for Production
+### Run the Server
 
 ```bash
-npm run build
 npm start
+```
+
+## Testing
+
+```bash
+npm test
 ```
 
 ## Related Projects
 
-- [spotlight-backend](https://github.com/Teruakii/spotlight-backend) – REST API (Node.js, Express, Prisma)
+- [spotlight-frontend](https://github.com/Teruakii/spotlight-frontend) – Next.js + Tailwind CSS web app
 
 ## License
 

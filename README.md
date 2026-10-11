@@ -1,97 +1,97 @@
 # Spotlight Frontend
 
-เว็บของ Spotlight แอปค้นหาและรีวิวสถานที่ท่องเที่ยวและร้านอาหาร หน้าตาทำตามดีไซน์จาก Figma และดึงข้อมูลจาก [spotlight-backend](https://github.com/Teruakii/spotlight-backend)
+Web app for Spotlight, for finding and reviewing travel attractions and restaurants. The UI follows the Figma design, and data comes from [spotlight-backend](https://github.com/Teruakii/spotlight-backend).
 
-- **Stack:** Next.js 15 (App Router), React 19, Tailwind CSS 3, lucide-react, Leaflet + react-leaflet (แผนที่, ใช้ tile ของ OpenStreetMap ไม่ต้องมี API key)
+- **Stack:** Next.js 15 (App Router), React 19, Tailwind CSS 3, lucide-react, Leaflet + react-leaflet (maps with OpenStreetMap tiles; no API key needed)
 
-## เริ่มต้นใช้งาน
+## Getting started
 
-ต้องรัน backend ก่อน (ดูวิธีใน README ของ spotlight-backend)
+Start the backend first (see the spotlight-backend README).
 
 ```bash
 npm install
-cp .env.local.example .env.local   # ค่า default ชี้ไปที่ http://localhost:5000/api
+cp .env.local.example .env.local   # defaults to http://localhost:5000/api
 npm run dev                        # http://localhost:3000
 ```
 
-| คำสั่ง | ทำอะไร |
+| Command | What it does |
 |---|---|
-| `npm run dev` | รันแบบพัฒนา (hot reload) |
-| `npm run build` | build สำหรับ production |
-| `npm start` | รันตัวที่ build แล้ว |
+| `npm run dev` | Development server with hot reload |
+| `npm run build` | Production build |
+| `npm start` | Run the production build |
 
-| ตัวแปรใน `.env.local` | ตัวอย่าง |
+| Variable in `.env.local` | Example |
 |---|---|
 | `NEXT_PUBLIC_API_URL` | `http://localhost:5000/api` |
 
-**ห้ามรัน `npm run dev` จากโฟลเดอร์เดียวกันสองตัวพร้อมกัน** (หรือรัน `npm run build` ระหว่างที่ dev รันอยู่) เพราะทุกตัวเขียนลงโฟลเดอร์ `.next` ร่วมกันแล้วจะทับกันจนหน้าเว็บพัง
+**Don't run two `npm run dev` processes from the same folder** (or `npm run build` while dev is running). They all write to the same `.next` folder and overwrite each other, which breaks the site.
 
-## หน้าในเว็บ
+## Pages
 
-| Path | ใครใช้ | มีอะไร |
+| Path | Who | What's there |
 |---|---|---|
-| `/` | ทุกคน | หน้าแรก: ค้นหา, กรองหมวด, เรียง Popular / Nearby / Top rated / Newest, สลับ Grid ↔ Map, "Picked for you" (ต้องล็อกอิน) |
-| `/places` | ทุกคน | รายการสถานที่ทั้งหมด + ปุ่มเพิ่มสถานที่ |
-| `/places/[id]` | ทุกคน | รายละเอียด: รูป, ปุ่ม Bookmark, แท็บ About / Nearby Eats / Reviews |
-| `/places/new`, `/places/[id]/edit` | ล็อกอิน | เพิ่ม/แก้สถานที่ (สถานที่ใหม่ต้องรอ admin อนุมัติ) |
-| `/login`, `/register` | ทุกคน | เข้าสู่ระบบ / สมัคร |
-| `/profile` | ล็อกอิน | Profile + แท็บ Trips & Collections, Saved Places, My Reviews, My Places, Settings |
-| `/settings` | ล็อกอิน | เปลี่ยนรหัสผ่าน, ออกจากระบบ, ลบบัญชี |
-| `/collections/[id]` | ทุกคน (ถ้าเป็น public) | หน้าแชร์ทริปแบบอ่านอย่างเดียว |
-| `/dashboard` | admin | ภาพรวม: ตัวเลขสรุป, กราฟ, สัดส่วนหมวด, กิจกรรมล่าสุด |
-| `/dashboard/pending` | admin | อนุมัติ/ปฏิเสธสถานที่ใหม่ |
-| `/dashboard/reviews` | admin | รีวิวที่ถูกรายงาน (Keep / Remove) |
-| `/dashboard/places`, `/dashboard/categories` | admin | จัดการสถานที่และหมวด |
-| `/dashboard/users` | admin | ค้นหา, ระงับ, คืนสิทธิ์ผู้ใช้ |
+| `/` | Everyone | Home: search, category filter, sort by Popular / Nearby / Top rated / Newest, Grid ↔ Map toggle, "Picked for you" (logged in) |
+| `/places` | Everyone | All places, plus an "Add place" button |
+| `/places/[id]` | Everyone | Place details: photos, Bookmark button, About / Nearby Eats / Reviews tabs |
+| `/places/new`, `/places/[id]/edit` | Logged in | Add or edit a place (new places wait for admin approval) |
+| `/login`, `/register` | Everyone | Log in / sign up |
+| `/profile` | Logged in | Profile with tabs: Trips & Collections, Saved Places, My Reviews, My Places, Settings |
+| `/settings` | Logged in | Change password, sign out, delete account |
+| `/collections/[id]` | Everyone (if public) | Read-only shared trip page |
+| `/dashboard` | Admin | Overview: key numbers, chart, category mix, recent activity |
+| `/dashboard/pending` | Admin | Approve or reject new places |
+| `/dashboard/reviews` | Admin | Reported reviews (Keep / Remove) |
+| `/dashboard/places`, `/dashboard/categories` | Admin | Manage places and categories |
+| `/dashboard/users` | Admin | Search, suspend and reinstate users |
 
-## วิธีใช้ฟีเจอร์หลัก
+## Using the main features
 
-**ค้นหาที่ใกล้ฉัน:** ที่หน้าแรกกด **Nearby** แล้วอนุญาตให้ browser ใช้ตำแหน่ง ระบบจะแสดงสถานที่ในรัศมี 25 กม. พร้อมระยะทาง แสดงเฉพาะสถานที่ที่มีพิกัด lat/lng (ใส่ได้ในหน้าแก้ไขสถานที่)
+**Find places near you:** On the home page, choose **Nearby** and allow the browser to share your location. You'll see places within 25 km, with distances. Only places with lat/lng coordinates appear; add them on the place's edit page.
 
-**แผนที่:** กด **Map** ทางขวา จะเห็นรายการด้านซ้ายและหมุดตัวเลขบนแผนที่ คลิกหมุดหรือรายการเพื่อเลือก แล้วกด "View details"
+**Map:** Choose **Map** on the right. The list is on the left and numbered pins are on the map. Click a pin or a list item to select it, then "View details".
 
-**Save และ Nearby Eats:** ในหน้า detail กดไอคอน Bookmark เพื่อ save ส่วนแท็บ **Nearby Eats** แสดงร้านอาหาร/คาเฟ่ในรัศมี 5 กม. โดยระบบนับหมวดที่ชื่อมีคำว่า dining / food / restaurant / café / อาหาร / ร้าน / คาเฟ่ เป็นร้านอาหาร
+**Save and Nearby Eats:** On a place's page, click the bookmark icon to save it. The **Nearby Eats** tab lists restaurants and cafés within 5 km. A category counts as food when its name contains dining / food / restaurant / café / อาหาร / ร้าน / คาเฟ่.
 
-**รีวิว:** ให้ดาวและเขียนข้อความ ถ้ากด "Rate details & add photos" จะให้คะแนนย่อย (Experience / Value / Access / Atmosphere) และแนบรูปจาก URL ได้สูงสุด 4 รูป รีวิวของคนอื่นกด **Helpful** หรือ **Report** ได้
+**Reviews:** Give a star rating and write a comment. Open "Rate details & add photos" to add per-aspect ratings (Experience / Value / Access / Atmosphere) and up to 4 photo URLs. On other people's reviews you can click **Helpful** or **Report**.
 
-**วางแผนทริป (Collections):** ไปที่ Profile → Trips & Collections
-1. ตั้งชื่อแล้วกด **+ New collection**
-2. เลือกสถานที่จากที่ save ไว้แล้วกด **Add to day N** (กด **+ Add day** ถ้าต้องการเพิ่มวัน)
-3. ใช้ปุ่ม ↑ ↓ เรียงลำดับ ใช้ช่อง Day ย้ายวัน ใช้ช่องเวลาตั้งเวลาเริ่ม ทุกอย่างบันทึกทันที
-4. กด **Make public** แล้วกด **Share collection** เพื่อคัดลอกลิงก์ไปให้คนอื่นดู
+**Plan a trip (Collections):** Go to Profile → Trips & Collections.
+1. Type a name and click **+ New collection**.
+2. Pick one of your saved places and click **Add to day N** (use **+ Add day** for more days).
+3. Use ↑ ↓ to reorder, the Day selector to move a place to another day, and the time field to set a start time. Changes save immediately.
+4. Click **Make public**, then **Share collection** to copy a link you can send to others.
 
-**Admin dashboard:** เลือกช่วง 7D / 30D / 12M ที่มุมขวาบน ชี้เมาส์ที่กราฟเพื่อดูตัวเลข หรือกด "View as table" ส่วนกราฟ Visits จะนับจากการเปิดหน้ารายละเอียดสถานที่
+**Admin dashboard:** Pick 7D / 30D / 12M in the top-right corner. Hover the chart to see values, or click "View as table". Visits are counted when someone opens a place's detail page.
 
-## โครงสร้างโค้ด
+## Code structure
 
 ```
 src/
-  app/                  หน้าเว็บตาม path (Next.js App Router)
+  app/                  Pages, one folder per path (Next.js App Router)
   components/
-    layout/             Navbar, เมนูผู้ใช้
-    home/               หน้าแรก: hero, ตัวกรอง, grid, แผนที่ (PlaceMap / PlaceMapView), PickedForYou
-    place/              การ์ดสถานที่
-    place-detail/       รูป, แท็บ, รีวิว, SaveButton, NearbyEats, ReportReviewButton
-    place-form/         ฟอร์มเพิ่ม/แก้สถานที่
-    profile/            ProfileHeader, CollectionsPanel / CollectionEditor, SettingsPanel, รายการต่าง ๆ
-    admin/              Sidebar, StatCard, ActivityChart, CategoryMix, ตารางจัดการ
-    auth/, ui/          ฟอร์มล็อกอิน และ component พื้นฐาน (StarRating, Tabs, Avatar, ...)
-  context/AuthContext.js  เก็บ token (localStorage) และข้อมูลผู้ใช้ที่ล็อกอินอยู่
+    layout/             Navbar, user menu
+    home/               Home page: hero, filters, grid, map (PlaceMap / PlaceMapView), PickedForYou
+    place/              Place card
+    place-detail/       Gallery, tabs, reviews, SaveButton, NearbyEats, ReportReviewButton
+    place-form/         Add/edit place form
+    profile/            ProfileHeader, CollectionsPanel / CollectionEditor, SettingsPanel, lists
+    admin/              Sidebar, StatCard, ActivityChart, CategoryMix, management tables
+    auth/, ui/          Login forms and basic components (StarRating, Tabs, Avatar, ...)
+  context/AuthContext.js  Token (in localStorage) and the logged-in user
   lib/
-    api.js              ฟังก์ชันเรียก API ทุกตัว (ที่เดียวที่ใช้ fetch)
-    usePlaceFeed.js     state ของหน้าแรก/หน้า places: หมวด, การค้นหา, การเรียง, Nearby
-    itinerary.js        ฟังก์ชันจัดลำดับ/ย้ายวันใน collection
-    reviews.js          รายการคะแนนย่อยและการหาค่าเฉลี่ย
-    chartColors.js      สีของกราฟ (ผ่านการตรวจว่าคนตาบอดสีแยกได้)
-    styles.js, utils.js class ที่ใช้ซ้ำ และฟังก์ชันช่วย (ชื่อ, วันที่, ระยะทาง, ...)
+    api.js              Every API call (the only place that uses fetch)
+    usePlaceFeed.js     State for the home and places pages: category, search, sort, Nearby
+    itinerary.js        Reorder / move-between-days helpers for collections
+    reviews.js          Sub-rating definitions and averages
+    chartColors.js      Chart colours (checked for colour-blind separation)
+    styles.js, utils.js Shared classes and helpers (names, dates, distances, ...)
 ```
 
-**แนวทางเวลาเพิ่มหน้าใหม่:** เพิ่มฟังก์ชันเรียก API ใน `lib/api.js` → สร้าง component ใน `components/<ส่วน>/` → สร้างหน้าใน `app/<path>/page.js` หน้าที่ต้องล็อกอินให้ใช้ `useAuth()` แล้ว redirect ไป `/login` ถ้ายังไม่มี user (ดูตัวอย่างใน `app/settings/page.js`)
+**Adding a page:** add the API call to `lib/api.js` → create components in `components/<area>/` → create the page in `app/<path>/page.js`. For pages that need a login, use `useAuth()` and redirect to `/login` when there is no user (see `app/settings/page.js`).
 
-## ข้อจำกัดที่รู้อยู่
+## Known limitations
 
-- ยังไม่มี unit test ฝั่ง frontend ตอนนี้ตรวจด้วย `npm run build` และการเปิดหน้าจริง
-- รูปทั้งหมดใส่เป็น URL ยังอัปโหลดไฟล์จากเครื่องไม่ได้
+- There are no frontend unit tests yet. Changes are checked with `npm run build` and by opening the pages.
+- Photos are added by URL; uploading files from your computer isn't supported yet.
 
 ## License
 

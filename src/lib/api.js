@@ -105,6 +105,22 @@ export function createReview(placeId, input, token) {
   return request(`/places/${placeId}/reviews`, { method: "POST", body: input, token });
 }
 
+export function listDetailedReviews(placeId, token) {
+  return request(`/places/${placeId}/reviews/detailed`, { token });
+}
+
+export function createDetailedReview(placeId, input, token) {
+  return request(`/places/${placeId}/reviews/detailed`, { method: "POST", body: input, token });
+}
+
+export function markReviewHelpful(id, token) {
+  return request(`/reviews/${id}/helpful`, { method: "PUT", token });
+}
+
+export function unmarkReviewHelpful(id, token) {
+  return request(`/reviews/${id}/helpful`, { method: "DELETE", token });
+}
+
 export function deleteReview(id, token) {
   return request(`/reviews/${id}`, { method: "DELETE", token });
 }

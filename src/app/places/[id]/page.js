@@ -4,7 +4,14 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, MapPin, Pencil, Star, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getPlace, listReviews, createReview, deleteReview } from "@/lib/api";
+import {
+  getPlace,
+  listDetailedReviews,
+  createDetailedReview,
+  deleteReview,
+  markReviewHelpful,
+  unmarkReviewHelpful,
+} from "@/lib/api";
 import { averageRating, errorMessage } from "@/lib/utils";
 import { cardClass, errorBannerClass, primaryButton, secondaryButton } from "@/lib/styles";
 
@@ -32,7 +39,7 @@ export default function PlaceDetailPage() {
     if (authLoading) return;
     let cancelled = false;
     setState("loading");
-    Promise.all([getPlace(id, token), listReviews(id).catch(() => [])])
+    Promise.all([getPlace(id, token), listDetailedReviews(id, token).catch(() => [])])
       .then(([loadedPlace, loadedReviews]) => {
         if (cancelled) return;
         setPlace(loadedPlace);
@@ -72,11 +79,24 @@ export default function PlaceDetailPage() {
   const hasCoordinates = place.latitude !== null && place.longitude !== null;
 
   async function handleAddReview(input) {
-    const review = await createReview(id, input, token);
-    setReviews((prev) => [
-      { ...review, author: { firstName: user.firstName, lastName: user.lastName } },
-      ...prev,
-    ]);
+    const review = await createDetailedReview(id, input, token);
+    setReviews((prev) => [review, ...prev]);
+  }
+
+  async function handleToggleHelpful(review) {
+    const helpful = !review.helpfulByMe;
+    await (helpful ? markReviewHelpful(review.id, token) : unmarkReviewHelpful(review.id, token));
+    setReviews((prev) =>
+      prev.map((r) =>
+        r.id === review.id
+          ? { ...r, helpfulByMe: helpful, helpfulCount: r.helpfulCount + (helpful ? 1 : -1) }
+          : r
+      )
+    );
+  }
+
+  function canVote(review) {
+    return Boolean(user) && user.id !== review.userId;
   }
 
   async function handleDeleteReview(reviewId) {
@@ -192,7 +212,13 @@ export default function PlaceDetailPage() {
             <div className="grid gap-10 md:grid-cols-3">
               <div className="md:col-span-2">
                 <ReviewSummary reviews={reviews} average={average} />
-                <ReviewList reviews={reviews} canDelete={canDeleteReview} onDelete={handleDeleteReview} />
+                <ReviewList
+                  reviews={reviews}
+                  canDelete={canDeleteReview}
+                  onDelete={handleDeleteReview}
+                  canVote={canVote}
+                  onToggleHelpful={handleToggleHelpful}
+                />
               </div>
 
               <div>

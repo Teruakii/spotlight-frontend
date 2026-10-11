@@ -8,9 +8,37 @@ import { errorBannerClass } from "@/lib/styles";
 const FILTERS = [
   { key: "all", label: "All", matches: () => true },
   { key: "five", label: "5 star", matches: (review) => review.rating === 5 },
+  { key: "photos", label: "With photos", matches: (review) => review.images?.length > 0 },
 ];
 
-export default function ReviewList({ reviews, canDelete, onDelete }) {
+function HelpfulButton({ review, onToggle }) {
+  const [busy, setBusy] = useState(false);
+
+  async function toggle() {
+    setBusy(true);
+    try {
+      await onToggle(review);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={toggle}
+      disabled={busy}
+      aria-pressed={review.helpfulByMe}
+      className={`mt-3 text-xs font-medium transition-colors disabled:opacity-60 ${
+        review.helpfulByMe ? "text-amber-700" : "text-zinc-400 hover:text-zinc-700"
+      }`}
+    >
+      {review.helpfulByMe ? "Helpful ✓" : "Helpful"}
+      {review.helpfulCount > 0 && ` · ${review.helpfulCount}`}
+    </button>
+  );
+}
+
+export default function ReviewList({ reviews, canDelete, onDelete, canVote, onToggleHelpful }) {
   const [filter, setFilter] = useState("all");
   const [confirmingId, setConfirmingId] = useState(null);
   const [busyId, setBusyId] = useState(null);
@@ -96,6 +124,28 @@ export default function ReviewList({ reviews, canDelete, onDelete }) {
             </div>
             {review.comment && (
               <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-600">{review.comment}</p>
+            )}
+            {review.images?.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {review.images.map((image) => (
+                  <a
+                    key={image.id}
+                    href={image.imageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-[72px] w-24 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100"
+                  >
+                    <img src={image.imageUrl} alt="Review photo" loading="lazy" className="h-full w-full object-cover" />
+                  </a>
+                ))}
+              </div>
+            )}
+            {canVote(review) ? (
+              <HelpfulButton review={review} onToggle={onToggleHelpful} />
+            ) : (
+              review.helpfulCount > 0 && (
+                <p className="mt-3 text-xs text-zinc-400">{review.helpfulCount} found this helpful</p>
+              )
             )}
           </div>
         ))}

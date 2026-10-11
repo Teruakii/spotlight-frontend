@@ -47,3 +47,15 @@ export function isHttpUrl(value) {
     return false;
   }
 }
+
+// Categories carry no "type" field, so dining is recognised by name.
+const DINING_NAME = /din|eat|food|restaurant|caf[eé]|bistro|อาหาร|ร้าน|คาเฟ่/i;
+
+export function findDiningCategory(categories) {
+  return categories.find((c) => DINING_NAME.test(c.name)) ?? null;
+}
+
+export function formatDistance(km) {
+  if (km === null || km === undefined) return "";
+  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+}

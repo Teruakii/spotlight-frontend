@@ -208,6 +208,14 @@ export function setCollectionLayout(id, items, token) {
   return request(`/collections/${id}/layout`, { method: "PUT", body: { items }, token });
 }
 
+export function getAdminStats(period, token) {
+  return request(`/admin/stats?period=${encodeURIComponent(period)}`, { token });
+}
+
+export function recordPlaceView(placeId, token) {
+  return request(`/places/${placeId}/views`, { method: "POST", token });
+}
+
 export function listCategories() {
   return request("/categories");
 }

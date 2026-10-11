@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 class ApiError extends Error {
   constructor(message, status, details) {
@@ -20,8 +20,9 @@ async function request(path, { method = "GET", body, token } = {}) {
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  } catch {
-    throw new ApiError("Cannot reach the server. Check your connection and try again.", 0);
+  } catch (err) {
+    console.warn(`[API Error] Failed to fetch: ${BASE_URL}${path}`, err);
+    throw new ApiError(`Cannot reach the server (${BASE_URL}). Check your connection and try again.`, 0);
   }
 
   const data = res.status === 204 ? null : await res.json().catch(() => null);

@@ -51,8 +51,8 @@ export function isHttpUrl(value) {
 // Categories carry no "type" field, so dining is recognised by name.
 const DINING_NAME = /din|eat|food|restaurant|caf[eé]|bistro|อาหาร|ร้าน|คาเฟ่/i;
 
-export function findDiningCategory(categories) {
-  return categories.find((c) => DINING_NAME.test(c.name)) ?? null;
+export function findDiningCategories(categories) {
+  return categories.filter((c) => DINING_NAME.test(c.name));
 }
 
 export function formatDistance(km) {

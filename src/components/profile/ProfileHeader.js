@@ -68,7 +68,7 @@ export default function ProfileHeader({ profile, stats, onSave }) {
       </div>
 
       <div className="px-6 pb-6">
-        <div className="-mt-10 mb-4 flex items-end justify-between">
+        <div className="relative -mt-10 mb-4 flex items-end justify-between">
           <div className="rounded-2xl border-4 border-white bg-white shadow-sm">
             <Avatar person={profile} size="xl" />
           </div>

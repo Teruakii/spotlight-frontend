@@ -7,13 +7,25 @@ import { errorMessage, formatDistance } from "@/lib/utils";
 import { errorBannerClass } from "@/lib/styles";
 import PageMessage from "@/components/ui/PageMessage";
 
-export default function NearbyEats({ placeId, diningCategory }) {
+const RADIUS_KM = 5;
+const LIMIT = 8;
+
+// One request per food category (or one unfiltered request when the site has
+// none), merged and re-sorted by distance.
+function loadNearby(placeId, categories) {
+  const categoryIds = categories.length ? categories.map((c) => c.id) : [undefined];
+  return Promise.all(
+    categoryIds.map((categoryId) => listPlacesNear(placeId, { categoryId, radiusKm: RADIUS_KM, limit: LIMIT }))
+  ).then((lists) => lists.flat().sort((a, b) => a.distanceKm - b.distanceKm).slice(0, LIMIT));
+}
+
+export default function NearbyEats({ placeId, diningCategories }) {
   const [places, setPlaces] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    listPlacesNear(placeId, { categoryId: diningCategory?.id, radiusKm: 5, limit: 8 })
+    loadNearby(placeId, diningCategories)
       .then((data) => {
         if (!cancelled) setPlaces(data);
       })
@@ -26,12 +38,12 @@ export default function NearbyEats({ placeId, diningCategory }) {
     return () => {
       cancelled = true;
     };
-  }, [placeId, diningCategory]);
+  }, [placeId, diningCategories]);
 
   if (error) return <div className={errorBannerClass} role="alert">{error}</div>;
   if (places === null) return <PageMessage>Finding places nearby…</PageMessage>;
   if (places.length === 0) {
-    return <PageMessage>Nothing within 5 km yet.</PageMessage>;
+    return <PageMessage>Nothing within {RADIUS_KM} km yet.</PageMessage>;
   }
 
   return (

@@ -61,6 +61,25 @@ export function listPendingPlaces(token) {
   return request("/places/pending", { token });
 }
 
+function queryString(params) {
+  const qs = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "")
+  ).toString();
+  return qs ? `?${qs}` : "";
+}
+
+export function listNearbyPlaces({ lat, lng, radiusKm, categoryId, limit } = {}) {
+  return request(`/places/nearby${queryString({ lat, lng, radiusKm, categoryId, limit })}`);
+}
+
+export function listPlacesNear(placeId, { radiusKm, categoryId, limit } = {}) {
+  return request(`/places/${placeId}/nearby${queryString({ radiusKm, categoryId, limit })}`);
+}
+
+export function listRecommendations(token, limit) {
+  return request(`/users/me/recommendations${queryString({ limit })}`, { token });
+}
+
 export function getPlace(id, token) {
   return request(`/places/${id}`, { token });
 }

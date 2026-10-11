@@ -11,8 +11,9 @@ import {
   deleteReview,
   markReviewHelpful,
   unmarkReviewHelpful,
+  listCategories,
 } from "@/lib/api";
-import { averageRating, errorMessage } from "@/lib/utils";
+import { averageRating, errorMessage, findDiningCategory } from "@/lib/utils";
 import { cardClass, errorBannerClass, primaryButton, secondaryButton } from "@/lib/styles";
 
 import ImageGallery from "@/components/place-detail/ImageGallery";
@@ -22,6 +23,7 @@ import ReviewSummary from "@/components/place-detail/ReviewSummary";
 import ReviewList from "@/components/place-detail/ReviewList";
 import ReviewForm from "@/components/place-detail/ReviewForm";
 import SaveButton from "@/components/place-detail/SaveButton";
+import NearbyEats from "@/components/place-detail/NearbyEats";
 import StatusBadge from "@/components/ui/StatusBadge";
 import Tabs from "@/components/ui/Tabs";
 import PageMessage from "@/components/ui/PageMessage";
@@ -34,6 +36,13 @@ export default function PlaceDetailPage() {
   const [state, setState] = useState("loading");
   const [loadError, setLoadError] = useState("");
   const [tab, setTab] = useState("about");
+  const [diningCategory, setDiningCategory] = useState(null);
+
+  useEffect(() => {
+    listCategories()
+      .then((categories) => setDiningCategory(findDiningCategory(categories)))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -172,6 +181,9 @@ export default function PlaceDetailPage() {
         <Tabs
           tabs={[
             { key: "about", label: "About" },
+            ...(hasCoordinates && isApproved
+              ? [{ key: "nearby", label: diningCategory ? "Nearby Eats" : "Nearby" }]
+              : []),
             { key: "reviews", label: "Reviews", count: reviews.length },
           ]}
           active={tab}
@@ -207,6 +219,8 @@ export default function PlaceDetailPage() {
               </div>
             </div>
           )}
+
+          {tab === "nearby" && <NearbyEats placeId={place.id} diningCategory={diningCategory} />}
 
           {tab === "reviews" && (
             <div className="grid gap-10 md:grid-cols-3">

@@ -14,6 +14,7 @@ import TransportList from "@/components/place-detail/TransportList";
 import ReviewSummary from "@/components/place-detail/ReviewSummary";
 import ReviewList from "@/components/place-detail/ReviewList";
 import ReviewForm from "@/components/place-detail/ReviewForm";
+import SaveButton from "@/components/place-detail/SaveButton";
 import StatusBadge from "@/components/ui/StatusBadge";
 import Tabs from "@/components/ui/Tabs";
 import PageMessage from "@/components/ui/PageMessage";
@@ -137,12 +138,15 @@ export default function PlaceDetailPage() {
               </p>
             )}
           </div>
-          {canEdit && (
-            <Link href={`/places/${id}/edit`} className={`${secondaryButton} shrink-0`}>
-              <Pencil className="h-3.5 w-3.5" />
-              Edit
-            </Link>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {canEdit && (
+              <Link href={`/places/${id}/edit`} className={secondaryButton}>
+                <Pencil className="h-3.5 w-3.5" />
+                Edit
+              </Link>
+            )}
+            {user && isApproved && <SaveButton placeId={place.id} token={token} />}
+          </div>
         </div>
 
         <Tabs

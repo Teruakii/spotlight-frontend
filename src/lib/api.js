@@ -109,6 +109,18 @@ export function deleteReview(id, token) {
   return request(`/reviews/${id}`, { method: "DELETE", token });
 }
 
+export function listSavedPlaces(token) {
+  return request("/users/me/saved-places", { token });
+}
+
+export function savePlace(placeId, token) {
+  return request(`/places/${placeId}/save`, { method: "PUT", token });
+}
+
+export function unsavePlace(placeId, token) {
+  return request(`/places/${placeId}/save`, { method: "DELETE", token });
+}
+
 export function listCategories() {
   return request("/categories");
 }

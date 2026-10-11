@@ -44,7 +44,7 @@ function ItemRow({ item, index, dayCount, busy, onMove, onMoveToDay, onTime, onR
         onChange={(e) => onTime(item.id, e.target.value)}
         disabled={busy}
         aria-label={`Start time for ${item.place.name}`}
-        className="w-[5.5rem] rounded border border-zinc-200 px-1.5 py-1 text-[11px] text-zinc-600 outline-none focus:border-zinc-400"
+        className="w-[6.75rem] rounded border border-zinc-200 px-1.5 py-1 text-[11px] text-zinc-600 outline-none focus:border-zinc-400"
       />
       <select
         value={item.day}
@@ -142,9 +142,11 @@ export default function CollectionEditor({ collection, savedPlaces, token, onCha
     <div className="rounded-xl border border-zinc-200 bg-white p-5">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="text-[10px] font-medium uppercase tracking-wider text-amber-700">
-            {usedDays}-day itinerary
-          </span>
+          {collection.items.length > 0 && (
+            <span className="text-[10px] font-medium uppercase tracking-wider text-amber-700">
+              {usedDays}-day itinerary
+            </span>
+          )}
           <h3 className="mt-1 text-base font-semibold text-zinc-900">{collection.name}</h3>
           <p className="mt-0.5 text-[10px] text-zinc-400">
             {collection.items.length} places · {collection.isPrivate ? "Private" : "Public"}

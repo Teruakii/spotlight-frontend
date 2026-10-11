@@ -22,6 +22,8 @@ function pinIcon(label, selected) {
 function FitToPins({ points }) {
   const map = useMap();
   useEffect(() => {
+    // The container may have been measured before layout settled.
+    map.invalidateSize();
     if (points.length === 1) map.setView(points[0], 14);
     else if (points.length > 1) map.fitBounds(points, { padding: [40, 40], maxZoom: 15 });
   }, [map, points]);

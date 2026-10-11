@@ -14,7 +14,7 @@ import {
   listCategories,
   recordPlaceView,
 } from "@/lib/api";
-import { averageRating, errorMessage, findDiningCategory } from "@/lib/utils";
+import { averageRating, errorMessage, findDiningCategories } from "@/lib/utils";
 import { cardClass, errorBannerClass, primaryButton, secondaryButton } from "@/lib/styles";
 
 import ImageGallery from "@/components/place-detail/ImageGallery";
@@ -37,7 +37,7 @@ export default function PlaceDetailPage() {
   const [state, setState] = useState("loading");
   const [loadError, setLoadError] = useState("");
   const [tab, setTab] = useState("about");
-  const [diningCategory, setDiningCategory] = useState(null);
+  const [diningCategories, setDiningCategories] = useState([]);
   const viewRecordedFor = useRef(null);
 
   // One visit per page load; the ref stops StrictMode's double effect counting twice.
@@ -49,7 +49,7 @@ export default function PlaceDetailPage() {
 
   useEffect(() => {
     listCategories()
-      .then((categories) => setDiningCategory(findDiningCategory(categories)))
+      .then((categories) => setDiningCategories(findDiningCategories(categories)))
       .catch(() => {});
   }, []);
 
@@ -191,7 +191,7 @@ export default function PlaceDetailPage() {
           tabs={[
             { key: "about", label: "About" },
             ...(hasCoordinates && isApproved
-              ? [{ key: "nearby", label: diningCategory ? "Nearby Eats" : "Nearby" }]
+              ? [{ key: "nearby", label: diningCategories.length ? "Nearby Eats" : "Nearby" }]
               : []),
             { key: "reviews", label: "Reviews", count: reviews.length },
           ]}
@@ -229,7 +229,7 @@ export default function PlaceDetailPage() {
             </div>
           )}
 
-          {tab === "nearby" && <NearbyEats placeId={place.id} diningCategory={diningCategory} />}
+          {tab === "nearby" && <NearbyEats placeId={place.id} diningCategories={diningCategories} />}
 
           {tab === "reviews" && (
             <div className="grid gap-10 md:grid-cols-3">

@@ -176,6 +176,38 @@ export function unsavePlace(placeId, token) {
   return request(`/places/${placeId}/save`, { method: "DELETE", token });
 }
 
+export function listMyCollections(token) {
+  return request("/collections", { token });
+}
+
+export function createCollection(input, token) {
+  return request("/collections", { method: "POST", body: input, token });
+}
+
+export function getCollection(id, token) {
+  return request(`/collections/${id}`, { token });
+}
+
+export function updateCollection(id, input, token) {
+  return request(`/collections/${id}`, { method: "PATCH", body: input, token });
+}
+
+export function deleteCollection(id, token) {
+  return request(`/collections/${id}`, { method: "DELETE", token });
+}
+
+export function addCollectionItem(id, input, token) {
+  return request(`/collections/${id}/items`, { method: "POST", body: input, token });
+}
+
+export function removeCollectionItem(id, itemId, token) {
+  return request(`/collections/${id}/items/${itemId}`, { method: "DELETE", token });
+}
+
+export function setCollectionLayout(id, items, token) {
+  return request(`/collections/${id}/layout`, { method: "PUT", body: { items }, token });
+}
+
 export function listCategories() {
   return request("/categories");
 }

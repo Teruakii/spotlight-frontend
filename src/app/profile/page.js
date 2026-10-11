@@ -11,6 +11,7 @@ import ProfileHeader from "@/components/profile/ProfileHeader";
 import MyPlacesList from "@/components/profile/MyPlacesList";
 import MyReviewsList from "@/components/profile/MyReviewsList";
 import SettingsPanel from "@/components/profile/SettingsPanel";
+import CollectionsPanel from "@/components/profile/CollectionsPanel";
 import PageMessage from "@/components/ui/PageMessage";
 import Tabs from "@/components/ui/Tabs";
 import PlaceGrid, { PlaceGridSkeleton } from "@/components/home/PlaceGrid";
@@ -23,7 +24,7 @@ export default function ProfilePage() {
   const [savedPlaces, setSavedPlaces] = useState(null);
   const [myReviews, setMyReviews] = useState(null);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState("saved");
+  const [tab, setTab] = useState("collections");
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -66,6 +67,7 @@ export default function ProfilePage() {
       <div className="mb-7">
         <Tabs
           tabs={[
+            { key: "collections", label: "Trips & Collections" },
             { key: "saved", label: "Saved Places" },
             { key: "reviews", label: "My Reviews", count: myReviews?.length },
             { key: "places", label: "My Places" },
@@ -77,6 +79,8 @@ export default function ProfilePage() {
       </div>
 
       {error && <div className={`${errorBannerClass} mb-4`} role="alert">{error}</div>}
+
+      {tab === "collections" && <CollectionsPanel token={token} savedPlaces={savedPlaces ?? []} />}
 
       {tab === "saved" &&
         (savedPlaces === null ? (

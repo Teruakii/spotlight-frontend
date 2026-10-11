@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, MapPin, Pencil, Star, User } from "lucide-react";
@@ -12,6 +12,7 @@ import {
   markReviewHelpful,
   unmarkReviewHelpful,
   listCategories,
+  recordPlaceView,
 } from "@/lib/api";
 import { averageRating, errorMessage, findDiningCategory } from "@/lib/utils";
 import { cardClass, errorBannerClass, primaryButton, secondaryButton } from "@/lib/styles";
@@ -37,6 +38,14 @@ export default function PlaceDetailPage() {
   const [loadError, setLoadError] = useState("");
   const [tab, setTab] = useState("about");
   const [diningCategory, setDiningCategory] = useState(null);
+  const viewRecordedFor = useRef(null);
+
+  // One visit per page load; the ref stops StrictMode's double effect counting twice.
+  useEffect(() => {
+    if (authLoading || viewRecordedFor.current === id) return;
+    viewRecordedFor.current = id;
+    recordPlaceView(id, token).catch(() => {});
+  }, [id, token, authLoading]);
 
   useEffect(() => {
     listCategories()

@@ -6,7 +6,14 @@ import { inputClass, labelClass, secondaryButton } from "@/lib/styles";
 
 export const MAX_IMAGE_URL_LENGTH = 191;
 
-export default function ImageUrlListInput({ images, onChange, draft, onDraftChange }) {
+export default function ImageUrlListInput({
+  images,
+  onChange,
+  draft,
+  onDraftChange,
+  maxLength = MAX_IMAGE_URL_LENGTH,
+  maxCount = Infinity,
+}) {
   const [error, setError] = useState("");
 
   function addImage() {
@@ -16,8 +23,12 @@ export default function ImageUrlListInput({ images, onChange, draft, onDraftChan
       setError("Enter a full image URL starting with http:// or https://");
       return;
     }
-    if (url.length > MAX_IMAGE_URL_LENGTH) {
-      setError(`This URL is too long (max ${MAX_IMAGE_URL_LENGTH} characters). Use a shorter link.`);
+    if (url.length > maxLength) {
+      setError(`This URL is too long (max ${maxLength} characters). Use a shorter link.`);
+      return;
+    }
+    if (images.length >= maxCount) {
+      setError(`You can add up to ${maxCount} photos.`);
       return;
     }
     if (images.some((img) => img.url === url)) {

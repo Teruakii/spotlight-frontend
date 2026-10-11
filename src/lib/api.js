@@ -216,6 +216,18 @@ export function recordPlaceView(placeId, token) {
   return request(`/places/${placeId}/views`, { method: "POST", token });
 }
 
+export function reportReview(id, input, token) {
+  return request(`/reviews/${id}/report`, { method: "POST", body: input, token });
+}
+
+export function listReportedReviews(token) {
+  return request("/admin/reports", { token });
+}
+
+export function moderateReview(id, action, token) {
+  return request(`/admin/reviews/${id}/moderation`, { method: "POST", body: { action }, token });
+}
+
 export function listCategories() {
   return request("/categories");
 }

@@ -241,6 +241,7 @@ export default function PlaceDetailPage() {
                   onDelete={handleDeleteReview}
                   canVote={canVote}
                   onToggleHelpful={handleToggleHelpful}
+                  token={token}
                 />
               </div>
 

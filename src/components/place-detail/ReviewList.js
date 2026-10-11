@@ -2,6 +2,7 @@
 import { useState } from "react";
 import StarRating from "@/components/ui/StarRating";
 import Avatar from "@/components/ui/Avatar";
+import ReportReviewButton from "@/components/place-detail/ReportReviewButton";
 import { errorMessage, formatMonthYear, fullName } from "@/lib/utils";
 import { errorBannerClass } from "@/lib/styles";
 
@@ -28,7 +29,7 @@ function HelpfulButton({ review, onToggle }) {
       onClick={toggle}
       disabled={busy}
       aria-pressed={review.helpfulByMe}
-      className={`mt-3 text-xs font-medium transition-colors disabled:opacity-60 ${
+      className={`text-xs font-medium transition-colors disabled:opacity-60 ${
         review.helpfulByMe ? "text-amber-700" : "text-zinc-400 hover:text-zinc-700"
       }`}
     >
@@ -38,7 +39,7 @@ function HelpfulButton({ review, onToggle }) {
   );
 }
 
-export default function ReviewList({ reviews, canDelete, onDelete, canVote, onToggleHelpful }) {
+export default function ReviewList({ reviews, canDelete, onDelete, canVote, onToggleHelpful, token }) {
   const [filter, setFilter] = useState("all");
   const [confirmingId, setConfirmingId] = useState(null);
   const [busyId, setBusyId] = useState(null);
@@ -141,7 +142,10 @@ export default function ReviewList({ reviews, canDelete, onDelete, canVote, onTo
               </div>
             )}
             {canVote(review) ? (
-              <HelpfulButton review={review} onToggle={onToggleHelpful} />
+              <div className="mt-3 flex items-center gap-4">
+                <HelpfulButton review={review} onToggle={onToggleHelpful} />
+                <ReportReviewButton reviewId={review.id} token={token} />
+              </div>
             ) : (
               review.helpfulCount > 0 && (
                 <p className="mt-3 text-xs text-zinc-400">{review.helpfulCount} found this helpful</p>

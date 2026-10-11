@@ -1,10 +1,17 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { loginUser, registerUser, getMe } from "@/lib/api";
+import { loginUser, registerUser, getMe, getMyProfile } from "@/lib/api";
 
 const AuthContext = createContext(null);
 
 const TOKEN_KEY = "spotlight_token";
+
+// /users/me carries identity and permissions; /users/me/profile adds the
+// editable profile fields (avatar, bio, ...). The navbar needs both.
+async function loadUser(token) {
+  const [me, profile] = await Promise.all([getMe(token), getMyProfile(token).catch(() => null)]);
+  return profile ? { ...profile, ...me } : me;
+}
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
@@ -17,7 +24,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return;
     }
-    getMe(stored)
+    loadUser(stored)
       .then((me) => {
         setToken(stored);
         setUser(me);
@@ -28,7 +35,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credentials) => {
     const { token: newToken } = await loginUser(credentials);
-    const me = await getMe(newToken);
+    const me = await loadUser(newToken);
     localStorage.setItem(TOKEN_KEY, newToken);
     setToken(newToken);
     setUser(me);
@@ -36,6 +43,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   const register = useCallback((input) => registerUser(input), []);
+
+  const applyProfile = useCallback((profile) => {
+    setUser((current) => (current ? { ...current, ...profile, permissions: current.permissions } : current));
+  }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
@@ -54,8 +65,9 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      applyProfile,
     };
-  }, [token, user, loading, login, register, logout]);
+  }, [token, user, loading, login, register, logout, applyProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

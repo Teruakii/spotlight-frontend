@@ -109,6 +109,26 @@ export function deleteReview(id, token) {
   return request(`/reviews/${id}`, { method: "DELETE", token });
 }
 
+export function getMyProfile(token) {
+  return request("/users/me/profile", { token });
+}
+
+export function updateMyProfile(input, token) {
+  return request("/users/me/profile", { method: "PATCH", body: input, token });
+}
+
+export function listMyReviews(token) {
+  return request("/users/me/reviews", { token });
+}
+
+export function changePassword(input, token) {
+  return request("/users/me/password", { method: "POST", body: input, token });
+}
+
+export function deleteAccount(password, token) {
+  return request("/users/me", { method: "DELETE", body: { password }, token });
+}
+
 export function listSavedPlaces(token) {
   return request("/users/me/saved-places", { token });
 }

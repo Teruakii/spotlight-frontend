@@ -9,7 +9,7 @@ export default function usePlaceFeed() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("newest");
+  const [sort, setSort] = useState("popular");
 
   useEffect(() => {
     listCategories()
@@ -49,6 +49,11 @@ export default function usePlaceFeed() {
     if (sort === "top") {
       return [...filtered].sort(
         (a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.reviewCount - a.reviewCount
+      );
+    }
+    if (sort === "popular") {
+      return [...filtered].sort(
+        (a, b) => b.reviewCount - a.reviewCount || (b.rating ?? -1) - (a.rating ?? -1)
       );
     }
     return filtered;

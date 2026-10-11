@@ -1,8 +1,9 @@
 "use client";
 
 const OPTIONS = [
-  { key: "newest", label: "Newest" },
+  { key: "popular", label: "Popular" },
   { key: "top", label: "Top rated" },
+  { key: "newest", label: "Newest" },
 ];
 
 export default function SortChips({ value, onChange }) {

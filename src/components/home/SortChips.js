@@ -2,13 +2,14 @@
 
 const OPTIONS = [
   { key: "popular", label: "Popular" },
+  { key: "nearby", label: "Nearby" },
   { key: "top", label: "Top rated" },
   { key: "newest", label: "Newest" },
 ];
 
 export default function SortChips({ value, onChange }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 overflow-x-auto">
       <span className="mr-1 text-xs font-medium text-zinc-400">Sort</span>
       {OPTIONS.map((option) => (
         <button

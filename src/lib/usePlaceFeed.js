@@ -1,6 +1,47 @@
 import { useEffect, useMemo, useState } from "react";
-import { listCategories, listPlaces } from "@/lib/api";
+import { listCategories, listNearbyPlaces, listPlaces } from "@/lib/api";
 import { errorMessage } from "@/lib/utils";
+
+const NEARBY_RADIUS_KM = 25;
+
+const SORTS = {
+  top: (a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.reviewCount - a.reviewCount,
+  popular: (a, b) => b.reviewCount - a.reviewCount || (b.rating ?? -1) - (a.rating ?? -1),
+  // Nearby results arrive ordered by distance; newest arrive ordered by creation.
+  nearby: null,
+  newest: null,
+};
+
+// The browser's position, requested only once the user picks "Nearby".
+function useGeolocation(wanted) {
+  const [location, setLocation] = useState({ status: "idle", coords: null, message: "" });
+
+  useEffect(() => {
+    if (!wanted || location.status !== "idle") return;
+    if (!("geolocation" in navigator)) {
+      setLocation({ status: "error", coords: null, message: "Your browser can't share its location." });
+      return;
+    }
+    setLocation({ status: "locating", coords: null, message: "" });
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        setLocation({
+          status: "ready",
+          coords: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+          message: "",
+        }),
+      () =>
+        setLocation({
+          status: "error",
+          coords: null,
+          message: "Allow location access to see places near you.",
+        }),
+      { timeout: 10000, maximumAge: 5 * 60 * 1000 }
+    );
+  }, [wanted, location.status]);
+
+  return location;
+}
 
 export default function usePlaceFeed() {
   const [categories, setCategories] = useState([]);
@@ -10,6 +51,8 @@ export default function usePlaceFeed() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("popular");
+  const location = useGeolocation(sort === "nearby");
+  const nearbyCoords = sort === "nearby" ? location.coords : null;
 
   useEffect(() => {
     listCategories()
@@ -18,10 +61,20 @@ export default function usePlaceFeed() {
   }, []);
 
   useEffect(() => {
+    if (sort === "nearby" && !nearbyCoords) {
+      setPlaces([]);
+      setLoading(location.status === "locating" || location.status === "idle");
+      setError(location.status === "error" ? location.message : "");
+      return;
+    }
+
     let cancelled = false;
     setLoading(true);
     setError("");
-    listPlaces({ categoryId: categoryId ?? undefined, status: "approved" })
+    const fetchPlaces = nearbyCoords
+      ? listNearbyPlaces({ ...nearbyCoords, radiusKm: NEARBY_RADIUS_KM, categoryId: categoryId ?? undefined, limit: 50 })
+      : listPlaces({ categoryId: categoryId ?? undefined, status: "approved" });
+    fetchPlaces
       .then((data) => {
         if (!cancelled) setPlaces(data);
       })
@@ -37,7 +90,7 @@ export default function usePlaceFeed() {
     return () => {
       cancelled = true;
     };
-  }, [categoryId]);
+  }, [categoryId, sort, nearbyCoords, location.status, location.message]);
 
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -46,17 +99,8 @@ export default function usePlaceFeed() {
           (p) => p.name.toLowerCase().includes(query) || p.address?.toLowerCase().includes(query)
         )
       : places;
-    if (sort === "top") {
-      return [...filtered].sort(
-        (a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.reviewCount - a.reviewCount
-      );
-    }
-    if (sort === "popular") {
-      return [...filtered].sort(
-        (a, b) => b.reviewCount - a.reviewCount || (b.rating ?? -1) - (a.rating ?? -1)
-      );
-    }
-    return filtered;
+    const compare = SORTS[sort];
+    return compare ? [...filtered].sort(compare) : filtered;
   }, [places, search, sort]);
 
   return {
@@ -70,5 +114,6 @@ export default function usePlaceFeed() {
     places: visible,
     loading,
     error,
+    nearbyRadiusKm: NEARBY_RADIUS_KM,
   };
 }

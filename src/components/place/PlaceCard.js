@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Star, MapPin, ImageOff } from "lucide-react";
-import { priceLevelSymbol } from "@/lib/utils";
+import { formatDistance, priceLevelSymbol } from "@/lib/utils";
 
 export default function PlaceCard({ place }) {
   const cover = place.images?.[0]?.imageUrl;
@@ -27,6 +27,11 @@ export default function PlaceCard({ place }) {
         {place.category?.name && (
           <span className="absolute left-3 top-3 rounded-full border border-zinc-200 bg-white/90 px-2.5 py-1 text-xs font-medium text-zinc-700 backdrop-blur-sm">
             {place.category.name}
+          </span>
+        )}
+        {place.distanceKm !== undefined && (
+          <span className="absolute right-3 top-3 rounded-full border border-zinc-200 bg-white/90 px-2.5 py-1 text-xs font-medium text-zinc-700 backdrop-blur-sm">
+            {formatDistance(place.distanceKm)}
           </span>
         )}
       </div>

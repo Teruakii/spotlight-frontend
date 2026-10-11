@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Clock, MapPin, Tags, Flag } from "lucide-react";
+import { LayoutDashboard, Clock, MapPin, Tags, Flag, Users } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { label: "Reported reviews", href: "/dashboard/reviews", icon: Flag },
   { label: "All places", href: "/dashboard/places", icon: MapPin },
   { label: "Categories", href: "/dashboard/categories", icon: Tags },
+  { label: "Users", href: "/dashboard/users", icon: Users },
 ];
 
 export default function Sidebar() {

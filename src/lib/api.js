@@ -228,6 +228,14 @@ export function moderateReview(id, action, token) {
   return request(`/admin/reviews/${id}/moderation`, { method: "POST", body: { action }, token });
 }
 
+export function listAdminUsers({ search, status } = {}, token) {
+  return request(`/admin/users${queryString({ search, status })}`, { token });
+}
+
+export function setUserSuspension(id, suspended, token) {
+  return request(`/admin/users/${id}/suspension`, { method: "PATCH", body: { suspended }, token });
+}
+
 export function listCategories() {
   return request("/categories");
 }

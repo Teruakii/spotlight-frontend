@@ -7,6 +7,16 @@ const SIZES = {
 };
 
 export default function Avatar({ person, size = "md" }) {
+  if (person?.avatarUrl) {
+    return (
+      <img
+        src={person.avatarUrl}
+        alt=""
+        className={`shrink-0 border-2 border-zinc-200 object-cover ${size === "xl" ? "" : "rounded-full"} ${SIZES[size]}`}
+      />
+    );
+  }
+
   return (
     <div
       className={`flex shrink-0 items-center justify-center rounded-full bg-zinc-200 font-semibold text-zinc-600 ${SIZES[size]}`}

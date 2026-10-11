@@ -1,16 +1,25 @@
 "use client";
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import StarRating from "@/components/ui/StarRating";
 import Avatar from "@/components/ui/Avatar";
 import Spinner from "@/components/ui/Spinner";
+import ImageUrlListInput from "@/components/place-form/ImageUrlListInput";
 import { errorMessage, fullName } from "@/lib/utils";
+import { MAX_REVIEW_PHOTOS, SUB_RATINGS } from "@/lib/reviews";
 import { errorBannerClass, primaryButton } from "@/lib/styles";
 
 const MAX_LENGTH = 2000;
+const REVIEW_IMAGE_URL_MAX = 500;
+const EMPTY_SUB_RATINGS = Object.fromEntries(SUB_RATINGS.map(({ field }) => [field, 0]));
 
 export default function ReviewForm({ user, onSubmit }) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [subRatings, setSubRatings] = useState(EMPTY_SUB_RATINGS);
+  const [images, setImages] = useState([]);
+  const [imageDraft, setImageDraft] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [posted, setPosted] = useState(false);
@@ -21,10 +30,19 @@ export default function ReviewForm({ user, onSubmit }) {
     setSubmitting(true);
     setError("");
     setPosted(false);
+    const scored = Object.fromEntries(Object.entries(subRatings).filter(([, value]) => value > 0));
     try {
-      await onSubmit({ rating, comment: comment.trim() || undefined });
+      await onSubmit({
+        rating,
+        comment: comment.trim() || undefined,
+        ...scored,
+        imageUrls: images.map((img) => img.url),
+      });
       setRating(0);
       setComment("");
+      setSubRatings(EMPTY_SUB_RATINGS);
+      setImages([]);
+      setImageDraft("");
       setPosted(true);
     } catch (err) {
       setError(errorMessage(err));
@@ -62,6 +80,42 @@ export default function ReviewForm({ user, onSubmit }) {
           {comment.length}/{MAX_LENGTH}
         </p>
       </div>
+
+      <button
+        type="button"
+        onClick={() => setShowDetails((v) => !v)}
+        aria-expanded={showDetails}
+        className="mb-4 flex w-full items-center justify-between text-xs font-medium text-zinc-500 hover:text-zinc-800"
+      >
+        Rate details &amp; add photos (optional)
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showDetails ? "rotate-180" : ""}`} />
+      </button>
+
+      {showDetails && (
+        <div className="mb-4 space-y-4">
+          <div className="space-y-2">
+            {SUB_RATINGS.map(({ field, label }) => (
+              <div key={field} className="flex items-center justify-between gap-3">
+                <span className="text-xs text-zinc-500">{label}</span>
+                <StarRating
+                  value={subRatings[field]}
+                  interactive
+                  size="sm"
+                  onChange={(value) => setSubRatings((current) => ({ ...current, [field]: value }))}
+                />
+              </div>
+            ))}
+          </div>
+          <ImageUrlListInput
+            images={images}
+            onChange={setImages}
+            draft={imageDraft}
+            onDraftChange={setImageDraft}
+            maxLength={REVIEW_IMAGE_URL_MAX}
+            maxCount={MAX_REVIEW_PHOTOS}
+          />
+        </div>
+      )}
 
       {error && <div className={`${errorBannerClass} mb-3`} role="alert">{error}</div>}
       {posted && (

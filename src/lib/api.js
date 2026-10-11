@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 class ApiError extends Error {
   constructor(message, status, details) {
@@ -20,8 +20,9 @@ async function request(path, { method = "GET", body, token } = {}) {
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-  } catch {
-    throw new ApiError("Cannot reach the server. Check your connection and try again.", 0);
+  } catch (err) {
+    console.warn(`[API Error] Failed to fetch: ${BASE_URL}${path}`, err);
+    throw new ApiError(`Cannot reach the server (${BASE_URL}). Check your connection and try again.`, 0);
   }
 
   const data = res.status === 204 ? null : await res.json().catch(() => null);
@@ -58,6 +59,25 @@ export function listPlaces(filters = {}, token) {
 
 export function listPendingPlaces(token) {
   return request("/places/pending", { token });
+}
+
+function queryString(params) {
+  const qs = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "")
+  ).toString();
+  return qs ? `?${qs}` : "";
+}
+
+export function listNearbyPlaces({ lat, lng, radiusKm, categoryId, limit } = {}) {
+  return request(`/places/nearby${queryString({ lat, lng, radiusKm, categoryId, limit })}`);
+}
+
+export function listPlacesNear(placeId, { radiusKm, categoryId, limit } = {}) {
+  return request(`/places/${placeId}/nearby${queryString({ radiusKm, categoryId, limit })}`);
+}
+
+export function listRecommendations(token, limit) {
+  return request(`/users/me/recommendations${queryString({ limit })}`, { token });
 }
 
 export function getPlace(id, token) {
@@ -104,8 +124,116 @@ export function createReview(placeId, input, token) {
   return request(`/places/${placeId}/reviews`, { method: "POST", body: input, token });
 }
 
+export function listDetailedReviews(placeId, token) {
+  return request(`/places/${placeId}/reviews/detailed`, { token });
+}
+
+export function createDetailedReview(placeId, input, token) {
+  return request(`/places/${placeId}/reviews/detailed`, { method: "POST", body: input, token });
+}
+
+export function markReviewHelpful(id, token) {
+  return request(`/reviews/${id}/helpful`, { method: "PUT", token });
+}
+
+export function unmarkReviewHelpful(id, token) {
+  return request(`/reviews/${id}/helpful`, { method: "DELETE", token });
+}
+
 export function deleteReview(id, token) {
   return request(`/reviews/${id}`, { method: "DELETE", token });
+}
+
+export function getMyProfile(token) {
+  return request("/users/me/profile", { token });
+}
+
+export function updateMyProfile(input, token) {
+  return request("/users/me/profile", { method: "PATCH", body: input, token });
+}
+
+export function listMyReviews(token) {
+  return request("/users/me/reviews", { token });
+}
+
+export function changePassword(input, token) {
+  return request("/users/me/password", { method: "POST", body: input, token });
+}
+
+export function deleteAccount(password, token) {
+  return request("/users/me", { method: "DELETE", body: { password }, token });
+}
+
+export function listSavedPlaces(token) {
+  return request("/users/me/saved-places", { token });
+}
+
+export function savePlace(placeId, token) {
+  return request(`/places/${placeId}/save`, { method: "PUT", token });
+}
+
+export function unsavePlace(placeId, token) {
+  return request(`/places/${placeId}/save`, { method: "DELETE", token });
+}
+
+export function listMyCollections(token) {
+  return request("/collections", { token });
+}
+
+export function createCollection(input, token) {
+  return request("/collections", { method: "POST", body: input, token });
+}
+
+export function getCollection(id, token) {
+  return request(`/collections/${id}`, { token });
+}
+
+export function updateCollection(id, input, token) {
+  return request(`/collections/${id}`, { method: "PATCH", body: input, token });
+}
+
+export function deleteCollection(id, token) {
+  return request(`/collections/${id}`, { method: "DELETE", token });
+}
+
+export function addCollectionItem(id, input, token) {
+  return request(`/collections/${id}/items`, { method: "POST", body: input, token });
+}
+
+export function removeCollectionItem(id, itemId, token) {
+  return request(`/collections/${id}/items/${itemId}`, { method: "DELETE", token });
+}
+
+export function setCollectionLayout(id, items, token) {
+  return request(`/collections/${id}/layout`, { method: "PUT", body: { items }, token });
+}
+
+export function getAdminStats(period, token) {
+  return request(`/admin/stats?period=${encodeURIComponent(period)}`, { token });
+}
+
+export function recordPlaceView(placeId, token) {
+  return request(`/places/${placeId}/views`, { method: "POST", token });
+}
+
+export function reportReview(id, input, token) {
+  return request(`/reviews/${id}/report`, { method: "POST", body: input, token });
+}
+
+export function listReportedReviews(token) {
+  return request("/admin/reports", { token });
+}
+
+export function moderateReview(id, action, token) {
+  return request(`/admin/reviews/${id}/moderation`, { method: "POST", body: { action }, token });
+}
+
+export function listAdminUsers({ search, status } = {}, token) {
+  return request(`/admin/users${queryString({ search, status })}`, { token });
+}
+
+export function setUserSuspension(id, suspended, token) {
+  return request(`/admin/users/${id}/suspension`, { method: "PATCH", body: { suspended }, token });
 }
 
 export function listCategories() {

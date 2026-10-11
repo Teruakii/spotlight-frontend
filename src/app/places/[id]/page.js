@@ -1,11 +1,20 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, MapPin, Pencil, Star, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getPlace, listReviews, createReview, deleteReview } from "@/lib/api";
-import { averageRating, errorMessage } from "@/lib/utils";
+import {
+  getPlace,
+  listDetailedReviews,
+  createDetailedReview,
+  deleteReview,
+  markReviewHelpful,
+  unmarkReviewHelpful,
+  listCategories,
+  recordPlaceView,
+} from "@/lib/api";
+import { averageRating, errorMessage, findDiningCategories } from "@/lib/utils";
 import { cardClass, errorBannerClass, primaryButton, secondaryButton } from "@/lib/styles";
 
 import ImageGallery from "@/components/place-detail/ImageGallery";
@@ -14,6 +23,8 @@ import TransportList from "@/components/place-detail/TransportList";
 import ReviewSummary from "@/components/place-detail/ReviewSummary";
 import ReviewList from "@/components/place-detail/ReviewList";
 import ReviewForm from "@/components/place-detail/ReviewForm";
+import SaveButton from "@/components/place-detail/SaveButton";
+import NearbyEats from "@/components/place-detail/NearbyEats";
 import StatusBadge from "@/components/ui/StatusBadge";
 import Tabs from "@/components/ui/Tabs";
 import PageMessage from "@/components/ui/PageMessage";
@@ -26,12 +37,27 @@ export default function PlaceDetailPage() {
   const [state, setState] = useState("loading");
   const [loadError, setLoadError] = useState("");
   const [tab, setTab] = useState("about");
+  const [diningCategories, setDiningCategories] = useState([]);
+  const viewRecordedFor = useRef(null);
+
+  // One visit per page load; the ref stops StrictMode's double effect counting twice.
+  useEffect(() => {
+    if (authLoading || viewRecordedFor.current === id) return;
+    viewRecordedFor.current = id;
+    recordPlaceView(id, token).catch(() => {});
+  }, [id, token, authLoading]);
+
+  useEffect(() => {
+    listCategories()
+      .then((categories) => setDiningCategories(findDiningCategories(categories)))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
     let cancelled = false;
     setState("loading");
-    Promise.all([getPlace(id, token), listReviews(id).catch(() => [])])
+    Promise.all([getPlace(id, token), listDetailedReviews(id, token).catch(() => [])])
       .then(([loadedPlace, loadedReviews]) => {
         if (cancelled) return;
         setPlace(loadedPlace);
@@ -71,11 +97,24 @@ export default function PlaceDetailPage() {
   const hasCoordinates = place.latitude !== null && place.longitude !== null;
 
   async function handleAddReview(input) {
-    const review = await createReview(id, input, token);
-    setReviews((prev) => [
-      { ...review, author: { firstName: user.firstName, lastName: user.lastName } },
-      ...prev,
-    ]);
+    const review = await createDetailedReview(id, input, token);
+    setReviews((prev) => [review, ...prev]);
+  }
+
+  async function handleToggleHelpful(review) {
+    const helpful = !review.helpfulByMe;
+    await (helpful ? markReviewHelpful(review.id, token) : unmarkReviewHelpful(review.id, token));
+    setReviews((prev) =>
+      prev.map((r) =>
+        r.id === review.id
+          ? { ...r, helpfulByMe: helpful, helpfulCount: r.helpfulCount + (helpful ? 1 : -1) }
+          : r
+      )
+    );
+  }
+
+  function canVote(review) {
+    return Boolean(user) && user.id !== review.userId;
   }
 
   async function handleDeleteReview(reviewId) {
@@ -137,17 +176,23 @@ export default function PlaceDetailPage() {
               </p>
             )}
           </div>
-          {canEdit && (
-            <Link href={`/places/${id}/edit`} className={`${secondaryButton} shrink-0`}>
-              <Pencil className="h-3.5 w-3.5" />
-              Edit
-            </Link>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {canEdit && (
+              <Link href={`/places/${id}/edit`} className={secondaryButton}>
+                <Pencil className="h-3.5 w-3.5" />
+                Edit
+              </Link>
+            )}
+            {user && isApproved && <SaveButton placeId={place.id} token={token} />}
+          </div>
         </div>
 
         <Tabs
           tabs={[
             { key: "about", label: "About" },
+            ...(hasCoordinates && isApproved
+              ? [{ key: "nearby", label: diningCategories.length ? "Nearby Eats" : "Nearby" }]
+              : []),
             { key: "reviews", label: "Reviews", count: reviews.length },
           ]}
           active={tab}
@@ -184,11 +229,20 @@ export default function PlaceDetailPage() {
             </div>
           )}
 
+          {tab === "nearby" && <NearbyEats placeId={place.id} diningCategories={diningCategories} />}
+
           {tab === "reviews" && (
             <div className="grid gap-10 md:grid-cols-3">
               <div className="md:col-span-2">
                 <ReviewSummary reviews={reviews} average={average} />
-                <ReviewList reviews={reviews} canDelete={canDeleteReview} onDelete={handleDeleteReview} />
+                <ReviewList
+                  reviews={reviews}
+                  canDelete={canDeleteReview}
+                  onDelete={handleDeleteReview}
+                  canVote={canVote}
+                  onToggleHelpful={handleToggleHelpful}
+                  token={token}
+                />
               </div>
 
               <div>
